@@ -42,7 +42,7 @@ fun ForecastScreen(city:String,context:Context){
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.TopStart
     ) {
         Column {
             TodayCard(currentWeatherState)
