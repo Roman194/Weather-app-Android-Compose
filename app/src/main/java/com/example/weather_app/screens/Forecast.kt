@@ -21,13 +21,21 @@ import androidx.compose.ui.unit.sp
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
+import com.example.weather_app.BuildConfig
+import com.example.weather_app.data.WeatherParametrs
+import org.json.JSONArray
+import org.json.JSONObject
 
 const val API_KEY="ba4477674ac0fe2a90679194303ea1b4"
 
 @Composable
 fun ForecastScreen(city:String,context:Context){
-    val state= remember {
-        mutableStateOf("Updating")
+    val forecastState= remember {
+        mutableStateOf(listOf<WeatherParametrs>())
+    }
+    val currentWeatherState=remember{
+        mutableStateOf(WeatherParametrs("Omsk", "Updating...","...","...","...","...",
+            "...","...","...","...","...","..."))
     }
 
     Box(
@@ -37,19 +45,9 @@ fun ForecastScreen(city:String,context:Context){
         contentAlignment = Alignment.Center
     ) {
         Column {
-            Text(
-                text = "FORECAST",
-                fontSize = MaterialTheme.typography.h3.fontSize,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
-            Text(
-                text = "The weather in $city is ${state.value} now",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
-            Button(onClick = { updateWeather(city,state,context) },
+            TodayCard(currentWeatherState)
+
+            Button(onClick = { updateWeather(city,forecastState,currentWeatherState,context) },
             modifier = Modifier
                 .padding(5.dp)
                 .fillMaxWidth()) {
@@ -57,23 +55,30 @@ fun ForecastScreen(city:String,context:Context){
             }
         }
     }
-    updateWeather(city,state,context)
+    updateWeather(city,forecastState,currentWeatherState,context)
 }
 
-private fun updateWeather(city: String, state: MutableState<String>, context: Context){
+private fun updateWeather(city: String, forecastState: MutableState<List<WeatherParametrs>>
+                          ,currentWeatherState:MutableState<WeatherParametrs>, context: Context){
     val url="https://api.weatherapi.com/v1/current.json"+
             "?key=$API_KEY&" +
             "q=$city" +
             "&aqi=no"
-    val url1="https://api.openweathermap.org/data/2.5/forecast?id=524901&appid="+"$API_KEY&q=$city&aqi=no"//прогноз на 5 дней каждые 3 часа
-    val url2="https://api.openweathermap.org/data/2.5/weather?q="+city+"&appid="+ API_KEY//сейчас погода
+    val url1="https://api.openweathermap.org/data/2.5/forecast?q=$city&appid="+"$API_KEY"//прогноз на 5 дней каждые 3 часа
+    //val url2="https://api.openweathermap.org/data/2.5/weather?q="+city+"&appid="+ API_KEY//сейчас погода
     val queue = Volley.newRequestQueue(context)
     val stringRequest=StringRequest(
         Request.Method.GET,
         url1,
     {
         responce ->
-        state.value=responce
+        //val obj=JSONObject(responce)
+        //val jbo=JSONArray(responce)
+        val data_list= getWeather(responce)
+        forecastState.value=data_list
+        currentWeatherState.value=data_list[0]
+        //state.value=jbo.getJSONObject(0).getString("temp")
+        //state.value=obj.getJSONObject("main").getString("temp")
     },
     {
         error->
@@ -83,9 +88,32 @@ private fun updateWeather(city: String, state: MutableState<String>, context: Co
     queue.add(stringRequest)
 }
 
-
-@Composable
-@Preview
-fun ForecastScreenPreview() {
-    //ForecastScreen("London",this)
+private fun getWeather(response:String): List<WeatherParametrs>{
+    if (response.isEmpty()) return listOf()
+    val list=ArrayList<WeatherParametrs>()
+    val mainObject=JSONObject(response)
+    val city=mainObject.getJSONObject("city").getString("name")
+    val hours=mainObject.getJSONArray("list")
+    for (i in 0 until hours.length()){
+        val item=hours[i] as JSONObject
+        list.add(
+            WeatherParametrs(
+                city,
+                item.getJSONObject("main").getString("temp"),
+                item.getJSONObject("main").getString("feels_like"),
+                //item.getJSONObject("main").getString("temp_min"),
+                //item.getJSONObject("main").getString("temp_max"),
+                item.getJSONObject("main").getString("pressure"),
+                item.getJSONObject("main").getString("humidity"),
+                item.getJSONArray("weather").getJSONObject(0).getString("main"),
+                item.getJSONArray("weather").getJSONObject(0).getString("description"),
+                item.getJSONObject("clouds").getString("all"),
+                item.getJSONObject("wind").getString("speed"),
+                item.getString("visibility"),
+                item.getString("pop"),
+                item.getString("dt_txt")
+            )
+        )
+    }
+    return list
 }
