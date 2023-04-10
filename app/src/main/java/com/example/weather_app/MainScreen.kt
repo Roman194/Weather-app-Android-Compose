@@ -2,10 +2,14 @@ package com.example.weather_app
 
 import android.annotation.SuppressLint
 import android.content.Context
-import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -18,11 +22,32 @@ import androidx.navigation.compose.rememberNavController
 @Composable
 fun MainScreen(context:Context){
     val navController= rememberNavController( )
-    Scaffold(bottomBar = { BottomBar(navController = navController)
+
+    val defaultCity="Novosibirsk"
+    val defaultCountry="Russia"
+    val cityState=remember{
+        mutableStateOf(defaultCity)
+    }
+    val countryState= remember {
+        mutableStateOf(defaultCountry)
+    }
+
+    Scaffold(topBar = { TopAppBar { TopBar(cityState,countryState) }}, bottomBar = { BottomBar(navController = navController)
 
     }) {
         BottomNavGraph(navController = navController,context)
     }
+}
+
+@Composable
+fun TopBar(cityState:MutableState<String>,countryState: MutableState<String>){
+    Text(
+        "${countryState.value}, ${cityState.value}",
+        color = Color.White,
+        style = MaterialTheme.typography.subtitle2,
+        fontSize = 18.sp,
+        modifier = Modifier.padding(horizontal = 25.dp,vertical=14.dp)
+    )
 }
 
 @Composable

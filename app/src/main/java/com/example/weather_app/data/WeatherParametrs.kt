@@ -2,10 +2,10 @@ package com.example.weather_app.data
 
 data class WeatherParametrs(
     val city:String,
-    val temp:String,
-    val temp_fl:String,
-    //val temp_min:String,
-    //val temp_max:String,
+    val temp: Double,
+    val temp_fl: Double,
+    val temp_min: Double,
+    val temp_max: Double,
     val pressure:String,
     val humidity:String,
     val weather:String,
@@ -14,5 +14,5 @@ data class WeatherParametrs(
     val wind_sp:String,
     val visibility:String,
     val pop:String,
-    val time:String
+    var time:String
 )
