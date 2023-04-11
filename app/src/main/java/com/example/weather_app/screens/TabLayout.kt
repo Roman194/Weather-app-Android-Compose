@@ -1,6 +1,6 @@
 package com.example.weather_app.screens
 
-import android.util.Log
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun TabLayout(forecastState:MutableState<List<WeatherParametrs>>){
+fun TabLayout(forecastState:MutableState<List<WeatherParametrs>>,context: Context,packageName:String){
     val tabList= listOf("In next 24 hours","In next 5 days")
     val pagerState= rememberPagerState()
     val tabIndex=pagerState.currentPage
@@ -64,7 +64,7 @@ fun TabLayout(forecastState:MutableState<List<WeatherParametrs>>){
                         else->getWeatherByDays(forecastState.value)
                     }
             //Log.d("MyLog","Response:$list")
-            MainList(list)
+            MainList(list,context,packageName)
 
         }
     }
@@ -78,7 +78,7 @@ private fun getWeatherByHours(hours:List<WeatherParametrs>):List<WeatherParametr
 
     splitted_list=hours[0].time.split(" ")
     sorted_hours.add(WeatherParametrs("",hours[0].temp,hours[0].temp_fl,0.0,0.0,"","",
-        hours[0].weather,"","","","","",splitted_list[1]))
+        hours[0].weather,"","","","",hours[0].day_time,splitted_list[1]))
 
 
     for(i in 1 until hours.size){
@@ -87,7 +87,7 @@ private fun getWeatherByHours(hours:List<WeatherParametrs>):List<WeatherParametr
             break
         }
         sorted_hours.add(WeatherParametrs("",hours[i].temp,hours[i].temp_fl,0.0,0.0,"","",
-            hours[i].weather,"","","","","",splitted_list_current[1]))
+            hours[i].weather,"","","","",hours[i].day_time,splitted_list_current[1]))
     }
     return sorted_hours
 }
@@ -112,7 +112,7 @@ private fun getWeatherByDays(days:List<WeatherParametrs>):List<WeatherParametrs>
             else{
                 sorted_days.add(
                     WeatherParametrs("",0.0,0.0,min_temp,max_temp,"","",days[i-1].weather//not correct a bit
-                        ,"","","","","",splitted_list[0])
+                        ,"","","","","d",splitted_list[0])
                 )
             }
             splitted_list=splitted_list_current
@@ -134,22 +134,24 @@ private fun getWeatherByDays(days:List<WeatherParametrs>):List<WeatherParametrs>
 }
 
 @Composable
-fun MainList(list:List<WeatherParametrs>){
+fun MainList(list:List<WeatherParametrs>,context: Context,packageName: String){
     LazyColumn(modifier = Modifier.fillMaxSize() ){
         itemsIndexed(list){
-                _,item-> ItemList(item)
+                _,item-> ItemList(item,context,packageName)
         }
     }
 }
 
 @Composable
-fun ItemList(item:WeatherParametrs){
+fun ItemList(item:WeatherParametrs,context: Context,packageName: String){
 
 
     var toCelsius:String
     var toCelsius_FL:String
     var toCelsius_Min:String
     var toCelsius_Max:String
+    var weatherNow:String
+    var weatherNowId:Int
 
     try{
         toCelsius=(item.temp-273.15).toInt().toString()
@@ -175,6 +177,9 @@ fun ItemList(item:WeatherParametrs){
         toCelsius_Max=""
     }
 
+    weatherNow=item.weather.lowercase().ifEmpty { "clear" }+"_"+item.day_time.ifEmpty { "d" }
+    weatherNowId=context.getResources().getIdentifier(weatherNow,"drawable",packageName)
+
     Surface(
         shape = MaterialTheme.shapes.medium,
         elevation = 0.5.dp,
@@ -193,7 +198,7 @@ fun ItemList(item:WeatherParametrs){
                 modifier = Modifier.padding(6.dp)
             )
             Image(
-                painter = painterResource(R.drawable.clear_day),
+                painter = painterResource(weatherNowId),
                 contentDescription = "weather_logo",
                 modifier = Modifier.size(52.dp, 48.dp)
             )

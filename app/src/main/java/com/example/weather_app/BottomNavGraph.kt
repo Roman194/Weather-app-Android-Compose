@@ -12,7 +12,7 @@ import com.example.weather_app.screens.LocationsScreen
 import com.example.weather_app.screens.SettingsScreen
 
 @Composable
-fun BottomNavGraph(navController: NavHostController,context: Context){
+fun BottomNavGraph(navController: NavHostController,context: Context,packageName:String){
     NavHost(navController=navController,
         startDestination=BottomBarScreen.Locations.route
     ){
@@ -20,7 +20,7 @@ fun BottomNavGraph(navController: NavHostController,context: Context){
             LocationsScreen()
         }
         composable(route=BottomBarScreen.Forecast.route){
-            ForecastScreen("Novosibirsk",context)
+            ForecastScreen("Omsk",context,packageName)
         }
         composable(route=BottomBarScreen.Settings.route){
             SettingsScreen()

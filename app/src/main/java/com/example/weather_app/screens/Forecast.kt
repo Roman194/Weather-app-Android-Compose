@@ -23,13 +23,13 @@ import org.json.JSONObject
 const val API_KEY="ba4477674ac0fe2a90679194303ea1b4"
 
 @Composable
-fun ForecastScreen(city:String,context:Context){
+fun ForecastScreen(city:String,context:Context,packageName:String){
     val forecastState= remember {
         mutableStateOf(listOf<WeatherParametrs>())
     }
     val currentWeatherState=remember{
-        mutableStateOf(WeatherParametrs("Omsk", 0.0,0.0,0.0,0.0,"...","...","...",
-            "...","...","...","...","...","..."))
+        mutableStateOf(WeatherParametrs("Omsk", 0.0,0.0,0.0,0.0,"...","...","",
+            "...","...","...","...","","..."))
     }
     for (i in 0 until forecastState.value.size){
         forecastState.value[i].temp
@@ -43,16 +43,17 @@ fun ForecastScreen(city:String,context:Context){
         contentAlignment = Alignment.TopStart
     ) {
         Column {
-            RightNowCard(currentWeatherState = currentWeatherState)
-            TodayCard(forecastState)
-            TabLayout(forecastState)
+            RightNowCard(currentWeatherState = currentWeatherState,context,packageName)
 
+            TodayCard(forecastState)
+            TabLayout(forecastState,context,packageName)
             Button(onClick = { updateWeather(city,forecastState,currentWeatherState,context) },
-            modifier = Modifier
-                .padding(5.dp)
-                .fillMaxWidth()) {
+                modifier = Modifier
+                    .padding(5.dp)
+                    .fillMaxWidth()) {
                 Text(text = "Update forecast")
             }
+
         }
     }
     updateWeather(city,forecastState,currentWeatherState,context)
@@ -113,7 +114,7 @@ private fun getWeather(response:String): List<WeatherParametrs>{
                 item.getJSONObject("clouds").getString("all"),
                 item.getJSONObject("wind").getString("speed"),
                 item.getString("visibility"),
-                item.getString("pop"),
+                item.getJSONObject("sys").getString("pod"),
                 item.getString("dt_txt")
             )
         )

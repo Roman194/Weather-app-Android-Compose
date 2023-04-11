@@ -20,8 +20,9 @@ import androidx.navigation.compose.rememberNavController
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
-fun MainScreen(context:Context){
+fun MainScreen(context:Context,packageName:String){
     val navController= rememberNavController( )
+
 
     val defaultCity="Novosibirsk"
     val defaultCountry="Russia"
@@ -35,7 +36,7 @@ fun MainScreen(context:Context){
     Scaffold(topBar = { TopAppBar { TopBar(cityState,countryState) }}, bottomBar = { BottomBar(navController = navController)
 
     }) {
-        BottomNavGraph(navController = navController,context)
+        BottomNavGraph(navController = navController,context,packageName)
     }
 }
 

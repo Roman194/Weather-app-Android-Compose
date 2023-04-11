@@ -1,5 +1,6 @@
 package com.example.weather_app.screens
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,15 +12,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.weather_app.R
 import com.example.weather_app.data.WeatherParametrs
+import kotlinx.coroutines.NonDisposableHandle.parent
 
 @Composable
-fun RightNowCard(currentWeatherState: MutableState<WeatherParametrs>){
+fun RightNowCard(currentWeatherState: MutableState<WeatherParametrs>,context:Context,packageName:String){
     var toCelsius:Int
     var toCelsius_FL:Int
+    var weatherNow:String
+    var weatherNowId:Int
     try{
         toCelsius=(currentWeatherState.value.temp-273.15).toInt()
         toCelsius_FL=(currentWeatherState.value.temp_fl-273.15).toInt()
@@ -27,6 +32,14 @@ fun RightNowCard(currentWeatherState: MutableState<WeatherParametrs>){
         toCelsius=0
         toCelsius_FL=0
     }
+
+        weatherNow=currentWeatherState.value.weather.lowercase().ifEmpty { "clear" }+"_"+currentWeatherState.value.day_time.ifEmpty { "d" }
+        weatherNowId=context.getResources().getIdentifier(weatherNow,"drawable",packageName)
+
+
+    //R.drawable.clear_d
+
+    //currentWeatherState.value.weather.lowercase()
 
     Column {
 
@@ -39,7 +52,7 @@ fun RightNowCard(currentWeatherState: MutableState<WeatherParametrs>){
         )
         Row {
             Image(
-                painter = painterResource(id = R.drawable.clear_day),
+                painter = painterResource(id = weatherNowId),
                 contentDescription = "logo picture"
             )
             Column{

@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colors.background
                 ) {
 
-                    MainScreen(this)
+                    MainScreen(this,getPackageName())
                 }
             }
         }

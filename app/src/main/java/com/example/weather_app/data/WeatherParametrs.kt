@@ -13,6 +13,6 @@ data class WeatherParametrs(
     val clouds:String,
     val wind_sp:String,
     val visibility:String,
-    val pop:String,
+    val day_time:String,
     var time:String
 )
