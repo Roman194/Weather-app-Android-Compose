@@ -17,7 +17,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.weather_app.R
 import com.example.weather_app.data.WeatherParametrs
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
@@ -27,7 +26,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun TabLayout(forecastState:MutableState<List<WeatherParametrs>>,context: Context,packageName:String){
+fun TabLayout(forecastState:MutableState<List<WeatherParametrs>>,context: Context,packageName:String,UTC:String){
     val tabList= listOf("In next 24 hours","In next 5 days")
     val pagerState= rememberPagerState()
     val tabIndex=pagerState.currentPage
@@ -60,7 +59,7 @@ fun TabLayout(forecastState:MutableState<List<WeatherParametrs>>,context: Contex
                         state = pagerState,
                         modifier = Modifier.weight(1.0f)) {index->
                     val list=when(index){
-                        0->getWeatherByHours(forecastState.value)
+                        0->getWeatherByHours(forecastState.value,UTC)
                         else->getWeatherByDays(forecastState.value)
                     }
             //Log.d("MyLog","Response:$list")
@@ -70,15 +69,23 @@ fun TabLayout(forecastState:MutableState<List<WeatherParametrs>>,context: Contex
     }
 }
 
-private fun getWeatherByHours(hours:List<WeatherParametrs>):List<WeatherParametrs>{
+private fun getWeatherByHours(hours:List<WeatherParametrs>,UTC:String):List<WeatherParametrs>{
     if (hours.isEmpty()) return listOf()
-    var splitted_list: List<String>
+    val splitted_list: List<String>
     var splitted_list_current:List<String>
-    var sorted_hours=ArrayList<WeatherParametrs>()
+    val sorted_hours=ArrayList<WeatherParametrs>()
+    var right_Time:List<String>
+    var right_Time_UTC:Int
 
     splitted_list=hours[0].time.split(" ")
+    right_Time=splitted_list[1].split(":")
+    right_Time_UTC=right_Time[0].toInt()+UTC.toInt()
+    if (right_Time_UTC>23) right_Time_UTC%=24
+    else{
+        if (right_Time_UTC<0) right_Time_UTC=24+right_Time_UTC
+    }
     sorted_hours.add(WeatherParametrs("",hours[0].temp,hours[0].temp_fl,0.0,0.0,"","",
-        hours[0].weather,"","","","",hours[0].day_time,splitted_list[1]))
+        hours[0].weather,"","","","",hours[0].day_time,right_Time_UTC.toString()+":"+right_Time[1]))
 
 
     for(i in 1 until hours.size){
@@ -86,8 +93,14 @@ private fun getWeatherByHours(hours:List<WeatherParametrs>):List<WeatherParametr
         if(splitted_list[1]==splitted_list_current[1]){
             break
         }
+        right_Time=splitted_list_current[1].split(":")
+        right_Time_UTC=right_Time[0].toInt()+UTC.toInt()
+        if (right_Time_UTC>23) right_Time_UTC%=24
+        else{
+            if (right_Time_UTC<0) right_Time_UTC=24+right_Time_UTC
+        }
         sorted_hours.add(WeatherParametrs("",hours[i].temp,hours[i].temp_fl,0.0,0.0,"","",
-            hours[i].weather,"","","","",hours[i].day_time,splitted_list_current[1]))
+            hours[i].weather,"","","","",hours[i].day_time,right_Time_UTC.toString()+":"+right_Time[1]))
     }
     return sorted_hours
 }
@@ -98,7 +111,7 @@ private fun getWeatherByDays(days:List<WeatherParametrs>):List<WeatherParametrs>
     var max_temp:Double
     var splitted_list:List<String>
     var splitted_list_current:List<String>
-    var sorted_days=ArrayList<WeatherParametrs>()
+    val sorted_days=ArrayList<WeatherParametrs>()
     var checker=true
 
     splitted_list=days[0].time.split(" ")
@@ -150,8 +163,8 @@ fun ItemList(item:WeatherParametrs,context: Context,packageName: String){
     var toCelsius_FL:String
     var toCelsius_Min:String
     var toCelsius_Max:String
-    var weatherNow:String
-    var weatherNowId:Int
+    val weatherNow:String
+    val weatherNowId:Int
 
     try{
         toCelsius=(item.temp-273.15).toInt().toString()

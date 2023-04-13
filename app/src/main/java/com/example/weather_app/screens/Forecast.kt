@@ -2,10 +2,11 @@ package com.example.weather_app.screens
 
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.Text
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -13,17 +14,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
+import com.example.weather_app.data.CityParametres
 import com.example.weather_app.data.WeatherParametrs
 import org.json.JSONObject
 
 const val API_KEY="ba4477674ac0fe2a90679194303ea1b4"
 
 @Composable
-fun ForecastScreen(city:String,context:Context,packageName:String){
+fun ForecastScreen(cityState:MutableState<CityParametres>,context:Context,packageName:String){
     val forecastState= remember {
         mutableStateOf(listOf<WeatherParametrs>())
     }
@@ -43,34 +44,28 @@ fun ForecastScreen(city:String,context:Context,packageName:String){
         contentAlignment = Alignment.TopStart
     ) {
         Column {
-            RightNowCard(currentWeatherState = currentWeatherState,context,packageName)
+            RightNowCard(currentWeatherState = currentWeatherState,context,packageName, onClickSync = {
+                updateWeather(cityState.value.city,forecastState,currentWeatherState,context)
+            })
 
             TodayCard(forecastState)
-            TabLayout(forecastState,context,packageName)
-            Button(onClick = { updateWeather(city,forecastState,currentWeatherState,context) },
-                modifier = Modifier
-                    .padding(5.dp)
-                    .fillMaxWidth()) {
-                Text(text = "Update forecast")
-            }
+            TabLayout(forecastState,context,packageName,cityState.value.UTC)
+
 
         }
     }
-    updateWeather(city,forecastState,currentWeatherState,context)
+    updateWeather(cityState.value.city,forecastState,currentWeatherState,context)
 }
 
 private fun updateWeather(city: String, forecastState: MutableState<List<WeatherParametrs>>
                           ,currentWeatherState:MutableState<WeatherParametrs>, context: Context){
-    val url="https://api.weatherapi.com/v1/current.json"+
-            "?key=$API_KEY&" +
-            "q=$city" +
-            "&aqi=no"
-    val url1="https://api.openweathermap.org/data/2.5/forecast?q=$city&appid="+"$API_KEY"//прогноз на 5 дней каждые 3 часа
-    //val url2="https://api.openweathermap.org/data/2.5/weather?q="+city+"&appid="+ API_KEY//сейчас погода
+
+    val url="https://api.openweathermap.org/data/2.5/forecast?q=$city&appid="+"$API_KEY"
+
     val queue = Volley.newRequestQueue(context)
     val stringRequest=StringRequest(
         Request.Method.GET,
-        url1,
+        url,
     {
         responce ->
         //val obj=JSONObject(responce)
@@ -84,14 +79,20 @@ private fun updateWeather(city: String, forecastState: MutableState<List<Weather
     },
     {
         error->
+        Toast.makeText(
+            context,
+            "Sorry, we can't find that city.\nPlease make sure that you wrote everything alright!",
+            Toast.LENGTH_LONG
+        ).show()
         Log.d("MyLog","Error: $error")
     }
     )
     queue.add(stringRequest)
 }
 
-private fun getWeather(response:String): List<WeatherParametrs>{
+private fun getWeather(response: String): List<WeatherParametrs>{
     if (response.isEmpty()) return listOf()
+
     val list=ArrayList<WeatherParametrs>()
     val mainObject=JSONObject(response)
     val city=mainObject.getJSONObject("city").getString("name")

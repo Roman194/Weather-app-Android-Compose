@@ -2,7 +2,6 @@ package com.example.weather_app
 
 import android.annotation.SuppressLint
 import android.content.Context
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -10,13 +9,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.weather_app.data.CityParametres
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
@@ -27,23 +26,21 @@ fun MainScreen(context:Context,packageName:String){
     val defaultCity="Novosibirsk"
     val defaultCountry="Russia"
     val cityState=remember{
-        mutableStateOf(defaultCity)
-    }
-    val countryState= remember {
-        mutableStateOf(defaultCountry)
+        mutableStateOf(CityParametres(defaultCity,defaultCountry,"7"))
     }
 
-    Scaffold(topBar = { TopAppBar { TopBar(cityState,countryState) }}, bottomBar = { BottomBar(navController = navController)
+
+    Scaffold(topBar = { TopAppBar { TopBar(cityState.value.city,cityState.value.country) }}, bottomBar = { BottomBar(navController = navController)
 
     }) {
-        BottomNavGraph(navController = navController,context,packageName)
+        BottomNavGraph(navController = navController,context,packageName,cityState)
     }
 }
 
 @Composable
-fun TopBar(cityState:MutableState<String>,countryState: MutableState<String>){
+fun TopBar(cityState:String,countryState:String){
     Text(
-        "${countryState.value}, ${cityState.value}",
+        "${countryState}, ${cityState}",
         color = Color.White,
         style = MaterialTheme.typography.subtitle2,
         fontSize = 18.sp,
